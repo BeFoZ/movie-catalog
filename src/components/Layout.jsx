@@ -1,16 +1,17 @@
-import { Container } from '@mui/material'
-import React from 'react'
-import { Outlet } from 'react-router-dom'
+import { Box, Container } from "@mui/material";
+import React from "react";
+import { Outlet } from "react-router-dom";
 
-import Navbar from './ui/Navbar/Navbar'
-import Footer from './ui/Footer/Footer'
+import Navbar from "./Navbar.jsx";
+import Footer from "./Footer.jsx";
 
 export default function Layout() {
   return (
     <Container fixed>
-        <Navbar />
-        <Outlet />
-        <Footer />
+      <Box sx={{ p: 4 }} />
+      <Navbar />
+      <Outlet />
+      <Footer />
     </Container>
-  )
+  );
 }
