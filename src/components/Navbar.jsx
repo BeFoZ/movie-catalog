@@ -50,7 +50,7 @@ export default function Navbar() {
               <MenuIcon />
             </IconButton>
             <Drawer open={isOpen} onClose={handleDrawerToggle}>
-              <Box SX={{ width: 250 }} onClick={handleDrawerToggle}>
+              <Box sx={{ width: 250 }} onClick={handleDrawerToggle}>
                 <List>
                   {TOP_LISTS.map((item) => (
                     <Link key={item.title} component={RouterLink} to={item.url}>
