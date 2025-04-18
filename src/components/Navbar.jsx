@@ -20,10 +20,10 @@ import {
 } from "@mui/material";
 import React, { useState } from "react";
 import { Link as RouterLink } from "react-router-dom";
-import { iconComponents, MOVIE_LISTS, TOP_LISTS } from "../../constants";
+import { iconComponents, MOVIE_LISTS, TOP_LISTS } from "../../constants.js";
 import MovieIcon from "@mui/icons-material/Movie";
 import { Widgets } from "@mui/icons-material";
-import Search from "../Search/Search";
+import Search from "./Search.jsx";
 
 const Icon = ({ iconName }) => {
   const IconComponent = iconComponents[iconName];

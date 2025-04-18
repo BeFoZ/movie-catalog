@@ -1,12 +1,12 @@
 import React from "react";
 import { createBrowserRouter, RouterProvider } from "react-router-dom";
 
-import Layout from "./Layout";
-import Movies from "./pages/Movies/Movies";
-import MovieDetails from "./pages/MovieDetails/MovieDetails";
-import MoviesListTop from "./pages/MoviesListTop/MoviesListTop";
-import MoviesListMain from "./pages/MoviesListMain/MoviesListMain";
-import { MOVIE_LISTS, TOP_LISTS } from './constants';
+import Layout from "./components/Layout.jsx";
+import Movies from "./pages/Movies.jsx";
+import MovieDetails from "./pages/MovieDetails.jsx";
+import MoviesListTop from "./pages/MoviesListTop.jsx";
+import MoviesListMain from "./pages/MoviesListMain.jsx";
+import { MOVIE_LISTS, TOP_LISTS } from '../constants.js';
 
 function App() {
   const router = createBrowserRouter([
