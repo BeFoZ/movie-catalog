@@ -1,12 +1,41 @@
-# React + Vite
+# SoftServe Practice: WebUI/React - Кіноафіша
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+## Команда розробки (Team 8)
+**Склад команди:**
+- **Юрій Іванків** - Team Lead
+- Денис Дмитрук - Developer
+- Кирило Квас - Developer
+- Кирило Колесніченко - Developer
+- Георгій Бриж - Developer
+- Денис Іващенко - Developer
 
-Currently, two official plugins are available:
+## Основні функціональні сторінки
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+### 1. Головна сторінка
+- Відображення списку актуальних фільмів та новинок
+- Кнопка "Детальніше" для переходу на сторінку фільму
 
-## Expanding the ESLint configuration
+### 2. Сторінка фільму
+- Можливість додати у «Обране».
+- Детальна інформація: постер, опис, жанр, рейтинг, рік випуску, трейлер,
+акторський склад.
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+### 3. Система пошуку
+- Пошук за назвою та іншими критеріями (жанр, рік, рейтинг тощо)
+
+### 4. Розклад сеансів
+- Перегляд розкладу сеансів з можливістю фільтрації за часом, датою,
+жанром.
+
+### 5. Сторінка "Обрані"
+- Відображення збережених фільмів 
+
+### 6. Панель адміністратора:
+- Додавання, редагування та видалення фільмів і сеансів..
+- Можливість змінювати ціни на квитки.
+- Можливість перегляду статистики продажів та інших ключових метрик. **(optional)**
+
+### 7. Персоналізація (optional)
+- Можливість реєстрації та входу користувачів для бронювання квитків.
+- Генерація персоналізованих пропозицій для користувача на основі його
+бронювань.
