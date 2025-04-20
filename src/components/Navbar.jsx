@@ -89,12 +89,18 @@ export default function Navbar() {
               width="100%"
             >
               <Typography
-                sx={{ color: "white", textDecoration: "none" }}
                 component={RouterLink}
-                variant="h5"
                 to="/"
+                variant="h6"
+                sx={{
+                  textDecoration: "none",
+                  color: "inherit",
+                  fontFamily: "monospace",
+                  fontWeight: 700,
+                  letterSpacing: ".1rem",
+                }}
               >
-                Тут буде назва сайту
+                CINEPOST
               </Typography>
               <Search />
             </Stack>
