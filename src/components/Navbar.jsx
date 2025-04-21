@@ -24,6 +24,7 @@ import { iconComponents, MOVIE_LISTS, TOP_LISTS } from "../../constants.js";
 import MovieIcon from "@mui/icons-material/Movie";
 import { Widgets } from "@mui/icons-material";
 import Search from "./Search.jsx";
+import { Heart } from "lucide-react";
 
 const Icon = ({ iconName }) => {
   const IconComponent = iconComponents[iconName];
@@ -66,6 +67,22 @@ export default function Navbar() {
                   ))}
                 </List>
                 <Divider />
+                <Link component={RouterLink} to="/favorites">
+                  <ListItem disablePadding>
+                    <ListItemButton>
+                      <ListItemIcon>
+                        <Heart className="w-5 h-5 text-purple-700" />
+                      </ListItemIcon>
+                      <ListItemText
+                        primary="Обрані"
+                        primaryTypographyProps={{
+                          className: "text-blue-600",
+                        }}
+                      />
+                    </ListItemButton>
+                  </ListItem>
+                </Link>
+
                 <List>
                   {MOVIE_LISTS.map((item) => (
                     <Link key={item.title} component={RouterLink} to={item.url}>
