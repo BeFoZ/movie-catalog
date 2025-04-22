@@ -6,6 +6,7 @@ import Movies from "./pages/Movies.jsx";
 import MovieDetails from "./pages/MovieDetails.jsx";
 import MoviesListTop from "./pages/MoviesListTop.jsx";
 import MoviesListMain from "./pages/MoviesListMain.jsx";
+import Favorites from "./pages/Favorites.jsx";
 import { MOVIE_LISTS, TOP_LISTS } from '../constants.js';
 
 function App() {
@@ -29,6 +30,10 @@ function App() {
         {
           path: "/movie/:id",
           element: <MovieDetails />,
+        },
+        {
+          path: "/favorites", 
+          element: <Favorites />,
         },
       ],
     },

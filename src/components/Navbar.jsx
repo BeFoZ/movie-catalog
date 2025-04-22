@@ -23,6 +23,7 @@ import { Link as RouterLink } from "react-router-dom";
 import { iconComponents, MOVIE_LISTS, TOP_LISTS } from "../../constants.js";
 import MovieIcon from "@mui/icons-material/Movie";
 import { Widgets } from "@mui/icons-material";
+import { Heart } from "lucide-react";
 import Search from "./Search.jsx";
 
 const Icon = ({ iconName }) => {
@@ -66,6 +67,14 @@ export default function Navbar() {
                   ))}
                 </List>
                 <Divider />
+                <div className="px-4 py-2">
+                  <RouterLink to="/favorites" onClick={handleDrawerToggle}>
+                    <div className="flex items-center gap-3 p-2 rounded-md hover:bg-gray-100 transition-colors">
+                      <Heart className="w-5 h-5 text-gray-700" />
+                      <span className="text-gray-800 font-medium">Обрані</span>
+                    </div>
+                  </RouterLink>
+                </div>
                 <List>
                   {MOVIE_LISTS.map((item) => (
                     <Link key={item.title} component={RouterLink} to={item.url}>
