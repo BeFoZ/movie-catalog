@@ -1,13 +1,21 @@
 import React from "react";
-import { Link } from "react-router-dom";
+import { Link, useSearchParams } from "react-router-dom";
 
 export default function Home({ movies }) {
+  const [searchParams] = useSearchParams();
+  const searchQuery = searchParams.get("search")?.toLowerCase() || "";
+
+  const filteredMovies = movies.filter(
+    (movie) =>
+      movie.title.toLowerCase().includes(searchQuery) ||
+      movie.overview.toLowerCase().includes(searchQuery)
+  );
+
   return (
     <div className="min-h-screen bg-gray-900">
-      {/* Movie Grid */}
       <div className="max-w-screen-lg mx-auto px-4 py-8">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {movies.map((movie) => (
+          {filteredMovies.map((movie) => (
             <Link
               to={`/movie/${movie.id}`}
               key={movie.id}

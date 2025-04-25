@@ -13,7 +13,11 @@ function App() {
       path: "/",
       element: <Layout />,
       children: [
-        { path: "/", element: <Home movies={moviesData} /> },
+        {
+          path: "/",
+          element: <Home movies={moviesData} />,
+          loader: () => moviesData,
+        },
         { path: "/favorites", element: <Favorites /> },
         { path: "/movie/:id", element: <MovieDetails /> },
       ],
