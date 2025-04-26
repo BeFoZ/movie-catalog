@@ -10,7 +10,7 @@ export default function Home({ movies }) {
       movie.title.toLowerCase().includes(searchQuery) ||
       movie.overview.toLowerCase().includes(searchQuery)
   );
-
+  //
   return (
     <div className="min-h-screen bg-gray-900">
       <div className="max-w-screen-lg mx-auto px-4 py-8">
