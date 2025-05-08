@@ -2,15 +2,36 @@ import { useParams } from "react-router-dom";
 import moviesData from "../../movies.json";
 import { useEffect, useState } from "react";
 import { Star } from "lucide-react";
+import Skeleton from "./Skeleton";
+import ErrorMessage from "./ErrorMessage";
 
 const MovieDetails = () => {
   const { id } = useParams();
   const [movie, setMovie] = useState(null);
   const [isFavorite, setIsFavorite] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState(null);
 
   useEffect(() => {
-    const foundMovie = moviesData.find((m) => String(m.id) === id);
-    setMovie(foundMovie);
+    const loadMovie = async () => {
+      try {
+        setIsLoading(true);
+        setError(null);
+        // Імітуємо затримку завантаження
+        await new Promise(resolve => setTimeout(resolve, 1000));
+        const foundMovie = moviesData.find((m) => String(m.id) === id);
+        if (!foundMovie) {
+          throw new Error('Фільм не знайдено');
+        }
+        setMovie(foundMovie);
+      } catch (err) {
+        setError(err.message);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    loadMovie();
   }, [id]);
 
   useEffect(() => {
@@ -29,7 +50,27 @@ const MovieDetails = () => {
     setIsFavorite(!isFavorite);
   };
 
-  if (!movie) return <p className="text-center mt-10 text-white">Завантаження...</p>;
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-[#0f172a] text-white px-6 py-10">
+        <div className="max-w-6xl mx-auto">
+          <Skeleton />
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-screen bg-[#0f172a] text-white px-6 py-10">
+        <div className="max-w-6xl mx-auto">
+          <ErrorMessage message={error} />
+        </div>
+      </div>
+    );
+  }
+
+  if (!movie) return null;
 
   return (
     <div className="min-h-screen bg-[#0f172a] text-white px-6 py-10">
