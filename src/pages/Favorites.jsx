@@ -32,7 +32,7 @@ const Favorites = () => {
               >
                 <Link to={`/movie/${movie.id}`} className="block">
                   <img
-                    src={movie.poster}
+                    src={`https://image.tmdb.org/t/p/w500${movie.poster_path}`}
                     alt={movie.title}
                     className="w-full h-72 object-cover"
                   />
@@ -40,6 +40,9 @@ const Favorites = () => {
                     <h2 className="text-xl font-semibold text-white">
                       {movie.title}
                     </h2>
+                    <div className="mt-2 text-sm text-gray-400">
+                      {new Date(movie.release_date).getFullYear()}
+                    </div>
                   </div>
                 </Link>
                 <div className="px-4 pb-4 flex justify-end">

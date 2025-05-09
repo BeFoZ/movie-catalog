@@ -1,9 +1,9 @@
 import { useParams } from "react-router-dom";
-import moviesData from "../../movies.json";
 import { useEffect, useState } from "react";
 import { Star } from "lucide-react";
-import Skeleton from "./Skeleton";
-import ErrorMessage from "./ErrorMessage";
+import Skeleton from "../components/Skeleton";
+import ErrorMessage from "../components/ErrorMessage";
+import tmdbApi from "../services/tmdbApi";
 
 const MovieDetails = () => {
   const { id } = useParams();
@@ -17,13 +17,12 @@ const MovieDetails = () => {
       try {
         setIsLoading(true);
         setError(null);
-        // Імітуємо затримку завантаження
-        await new Promise(resolve => setTimeout(resolve, 1000));
-        const foundMovie = moviesData.find((m) => String(m.id) === id);
-        if (!foundMovie) {
+        
+        const movieData = await tmdbApi.getMovieDetails(id);
+        if (!movieData) {
           throw new Error('Фільм не знайдено');
         }
-        setMovie(foundMovie);
+        setMovie(movieData);
       } catch (err) {
         setError(err.message);
       } finally {
@@ -78,7 +77,7 @@ const MovieDetails = () => {
         
         {/* Poster */}
         <img
-          src={movie.poster}
+          src={`https://image.tmdb.org/t/p/w500${movie.poster_path}`}
           alt={movie.title}
           className="rounded-2xl shadow-lg object-cover w-full h-[450px]"
         />
@@ -90,20 +89,20 @@ const MovieDetails = () => {
           {/* Rating + Year */}
           <div className="flex items-center space-x-4 text-sm text-gray-300">
             <span className="bg-blue-600 text-white px-2 py-1 rounded-full flex items-center">
-              <Star className="h-4 w-4 mr-1" /> {movie.rating}
+              <Star className="h-4 w-4 mr-1" /> {movie.vote_average.toFixed(1)}
             </span>
-            <span>{movie.year}</span>
+            <span>{new Date(movie.release_date).getFullYear()}</span>
             <span>•</span>
-            <span>{movie.genre}</span>
+            <span>{movie.genres?.map(genre => genre.name).join(", ")}</span>
           </div>
 
           {/* Description */}
-          <p className="text-gray-300">{movie.description}</p>
+          <p className="text-gray-300">{movie.overview}</p>
 
-          {/* Cast */}
+          {/* Runtime */}
           <p>
-            <span className="text-white font-semibold">Актори:</span>{" "}
-            {movie.cast?.join(", ")}
+            <span className="text-white font-semibold">Тривалість:</span>{" "}
+            {movie.runtime} хвилин
           </p>
 
           {/* Favorite Button */}
