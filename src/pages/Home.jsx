@@ -10,6 +10,8 @@ export default function Home() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
   const [movies, setMovies] = useState([]);
+  const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
 
   useEffect(() => {
     const loadMovies = async () => {
@@ -19,9 +21,9 @@ export default function Home() {
         
         let response;
         if (searchQuery) {
-          response = await tmdbApi.searchMovies(searchQuery);
+          response = await tmdbApi.searchMovies(searchQuery, page);
         } else {
-          response = await tmdbApi.getPopularMovies();
+          response = await tmdbApi.getPopularMovies(page);
         }
         
         if (response.results.length === 0 && searchQuery) {
@@ -29,6 +31,7 @@ export default function Home() {
         }
         
         setMovies(response.results);
+        setTotalPages(response.total_pages);
       } catch (err) {
         setError(err.message);
       } finally {
@@ -37,7 +40,7 @@ export default function Home() {
     };
 
     loadMovies();
-  }, [searchQuery]);
+  }, [searchQuery, page]);
 
   if (isLoading) {
     return (
@@ -107,6 +110,27 @@ export default function Home() {
               </div>
             </Link>
           ))}
+        </div>
+
+        {/* Пагінація */}
+        <div className="flex justify-center gap-4 mt-8">
+          <button
+            onClick={() => setPage(p => Math.max(1, p - 1))}
+            disabled={page === 1}
+            className="px-4 py-2 bg-blue-600 text-white rounded disabled:bg-gray-600"
+          >
+            Попередня
+          </button>
+          <span className="px-4 py-2 text-white">
+            Сторінка {page} з {totalPages}
+          </span>
+          <button
+            onClick={() => setPage(p => Math.min(totalPages, p + 1))}
+            disabled={page === totalPages}
+            className="px-4 py-2 bg-blue-600 text-white rounded disabled:bg-gray-600"
+          >
+            Наступна
+          </button>
         </div>
       </div>
     </div>
