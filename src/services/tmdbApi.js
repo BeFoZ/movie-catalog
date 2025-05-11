@@ -17,15 +17,26 @@ const tmdbApi = {
 
   // Get movie details
   getMovieDetails: async (movieId) => {
-    try {
-      const response = await fetch(
-        `${BASE_URL}/movie/${movieId}?api_key=${API_KEY}`
-      );
-      return await response.json();
-    } catch (error) {
-      console.error('Error fetching movie details:', error);
-      throw error;
+      try {
+    const response = await fetch(
+      `${BASE_URL}/movie/${movieId}?api_key=${API_KEY}`
+    );
+
+    if (!response.ok) {
+      throw new Error('Failed to load the movie.');
     }
+
+    const data = await response.json();
+
+    if (!data || data.success === false) {
+      throw new Error(data.status_message || 'Movie not found.');
+    }
+
+    return data;
+  } catch (error) {
+    console.error('Error fetching movie details:', error);
+    throw error;
+  }
   },
 
   // Search movies
@@ -55,6 +66,47 @@ const tmdbApi = {
       throw error;
     }
   },
+  // Get cast
+getMovieCredits: async (movieId) => {
+  try {
+    const response = await fetch(
+      `${BASE_URL}/movie/${movieId}/credits?api_key=${API_KEY}`
+    );
+    if (!response.ok) throw new Error('Failed to load the movie credits.');
+    
+    const data = await response.json();
+    console.log('Movie Credits:', data); 
+
+    if (data && data.cast && Array.isArray(data.cast)) {
+      return data; 
+    } else {
+      console.error('No actors found in the response');
+      return { cast: [] }; 
+    }
+  } catch (error) {
+    console.error("Error fetching movie credits:", error);
+    return { cast: [] }; 
+  }
+},
+  getMovieTrailer: async (movieId) => {
+  try {
+    const response = await fetch(
+      `${BASE_URL}/movie/${movieId}/videos?api_key=${API_KEY}`
+    );
+    const data = await response.json();
+
+    // Шукаємо перший трейлер з YouTube
+    const trailer = data.results.find(
+      (video) =>
+        video.type === "Trailer" && video.site === "YouTube"
+    );
+
+    return trailer ? `https://www.youtube.com/embed/${trailer.key}` : null;
+  } catch (error) {
+    console.error("Error fetching trailer:", error);
+    return null;
+  }
+},
 };
 
 export default tmdbApi; 

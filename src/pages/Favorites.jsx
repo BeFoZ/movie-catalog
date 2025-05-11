@@ -19,10 +19,10 @@ const Favorites = () => {
   return (
     <div className="min-h-screen bg-[#0f172a] text-white px-6 py-10">
       <div className="max-w-6xl mx-auto">
-        <h1 className="text-4xl font-bold mb-6">Обрані фільми</h1>
+        <h1 className="text-4xl font-bold mb-6">Favorite movies</h1>
 
         {favorites.length === 0 ? (
-          <p className="text-gray-400">Немає збережених фільмів.</p>
+          <p className="text-gray-400">No saved movies.</p>
         ) : (
           <div className="grid grid-cols-2 md:grid-cols-3 gap-6">
             {favorites.map((movie) => (
@@ -51,7 +51,7 @@ const Favorites = () => {
                     className="flex items-center gap-1 text-sm text-red-500 hover:underline"
                   >
                     <Trash2 className="w-4 h-4" />
-                    Видалити
+                    Delete
                   </button>
                 </div>
               </div>

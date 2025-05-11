@@ -12,6 +12,7 @@ export default function Navbar() {
 
           <div className="flex gap-6 items-center font-bold text-xl text-white">
             <Link to="/" className="hover:text-blue-500 transition">Home</Link>
+             <Link to="/sessions" className="hover:underline">Sessions</Link>
             <Link to="/favorites" className="hover:text-blue-500 transition">Favorites</Link>
             <Search />
           </div>

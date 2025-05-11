@@ -11,6 +11,7 @@ const MovieDetails = () => {
   const [isFavorite, setIsFavorite] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [cast, setCast] = useState([]);
 
   useEffect(() => {
     const loadMovie = async () => {
@@ -20,7 +21,7 @@ const MovieDetails = () => {
         
         const movieData = await tmdbApi.getMovieDetails(id);
         if (!movieData) {
-          throw new Error('Фільм не знайдено');
+          throw new Error('Movie not found');
         }
         setMovie(movieData);
       } catch (err) {
@@ -34,10 +35,32 @@ const MovieDetails = () => {
   }, [id]);
 
   useEffect(() => {
+  const loadCredits = async () => {
+    if (movie) {
+      const credits = await tmdbApi.getMovieCredits(movie.id);
+      setCast(credits.cast?.slice(0, 8) || []); // 8 actors
+    }
+  };
+
+  loadCredits();
+}, [movie]);
+
+  useEffect(() => {
     if (movie) {
       const favorites = JSON.parse(localStorage.getItem("favorites")) || [];
       setIsFavorite(favorites.some((f) => f.id === movie.id));
     }
+  }, [movie]);
+
+  useEffect(() => {
+    const loadTrailer = async () => {
+      if (movie) {
+        const trailerUrl = await tmdbApi.getMovieTrailer(movie.id);
+        setMovie((prev) => ({ ...prev, trailer: trailerUrl }));
+      }
+    };
+
+    loadTrailer();
   }, [movie]);
 
   const toggleFavorite = () => {
@@ -101,8 +124,8 @@ const MovieDetails = () => {
 
           {/* Runtime */}
           <p>
-            <span className="text-white font-semibold">Тривалість:</span>{" "}
-            {movie.runtime} хвилин
+            <span className="text-white font-semibold">Duration:</span>{" "}
+            {movie.runtime} minutes
           </p>
 
           {/* Favorite Button */}
@@ -114,29 +137,53 @@ const MovieDetails = () => {
                 : "bg-gray-500 hover:bg-gray-600"
             }`}
           >
-            {isFavorite ? "Видалити з обраного" : "Додати до обраного"}
+            {isFavorite ? "Remove from favorites" : "Add to favorites"}
           </button>
         </div>
       </div>
 
       {/* Trailer */}
-      {movie.trailer && (
-        <div className="max-w-6xl mx-auto mt-12">
-          <h2 className="text-2xl font-semibold mb-2">Трейлер</h2>
-          <iframe
-            width="100%"
-            height="400"
-            src={movie.trailer}
-            title="Трейлер"
-            frameBorder="0"
-            allowFullScreen
-            className="rounded-lg shadow"
+{movie.trailer && (
+  <div className="max-w-6xl mx-auto mt-12">
+    <h2 className="text-2xl font-semibold mb-2">Trailer</h2>
+    <div className="relative pb-[56.25%] h-0 overflow-hidden rounded-lg shadow">
+      <iframe
+        className="absolute top-0 left-0 w-full h-full"
+        src={movie.trailer}
+        title="Trailer"
+        frameBorder="0"
+        allowFullScreen
+      />
+    </div>
+  </div>
+)}
+       {/* Cast */}
+{cast.length > 0 && (
+  <div className="max-w-6xl mx-auto mt-12">
+    <h2 className="text-2xl font-semibold mb-4">Actors</h2>
+    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+      {cast.map((actor) => (
+        <div key={actor.id} className="flex flex-col items-center text-center">
+          <img
+            src={
+              actor.profile_path
+                ? `https://image.tmdb.org/t/p/w185${actor.profile_path}`
+                : "https://via.placeholder.com/185x278?text=No+Image"
+            }
+            alt={actor.name}
+            className="w-[120px] h-[180px] object-cover rounded-lg shadow mb-2"
           />
+          <p className="text-white font-medium">{actor.name}</p>
+          <p className="text-sm text-gray-400">{actor.character}</p>
         </div>
-      )}
+      ))}
+    </div>
+  </div>
+)}
     </div>
   );
 };
 
 export default MovieDetails;
+
 
