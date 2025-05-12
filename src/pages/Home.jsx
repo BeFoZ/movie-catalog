@@ -3,6 +3,7 @@ import { Link, useSearchParams } from "react-router-dom";
 import Skeleton from "../components/Skeleton";
 import ErrorMessage from "../components/ErrorMessage";
 import tmdbApi from "../services/tmdbApi";
+import Pagination from "../components/Pagination";
 
 export default function Home() {
   const [searchParams] = useSearchParams();
@@ -12,6 +13,7 @@ export default function Home() {
   const [movies, setMovies] = useState([]);
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
+  const [inputPage, setInputPage] = useState("");
 
   useEffect(() => {
     const loadMovies = async () => {
@@ -26,14 +28,30 @@ export default function Home() {
           response = await tmdbApi.getPopularMovies(page);
         }
         
-        if (response.results.length === 0 && searchQuery) {
-          throw new Error('Фільми не знайдено');
+        // Обмеження для TMDB: максимум 500 сторінок
+        const maxPages = 500;
+        const realTotalPages = Math.min(response.total_pages || 1, maxPages);
+        
+        if (page > realTotalPages) {
+          setPage(realTotalPages);
+          return;
+        }
+        
+        if (!response.results || !Array.isArray(response.results) || response.results.length === 0) {
+          if (searchQuery) {
+            throw new Error('No movies found');
+          } else {
+            setMovies([]);
+            setTotalPages(realTotalPages);
+            return;
+          }
         }
         
         setMovies(response.results);
-        setTotalPages(response.total_pages);
+        setTotalPages(realTotalPages);
       } catch (err) {
         setError(err.message);
+        console.error('Error downloading movies:', err);
       } finally {
         setIsLoading(false);
       }
@@ -41,6 +59,20 @@ export default function Home() {
 
     loadMovies();
   }, [searchQuery, page]);
+
+  const handlePageChange = (newPage) => {
+    setPage(newPage);
+    setInputPage("");
+  };
+
+  const handleInputPageSubmit = (e) => {
+    e.preventDefault();
+    const pageNumber = parseInt(inputPage);
+    if (pageNumber && pageNumber > 0 && pageNumber <= totalPages) {
+      setPage(pageNumber);
+      setInputPage("");
+    }
+  };
 
   if (isLoading) {
     return (
@@ -113,24 +145,31 @@ export default function Home() {
         </div>
 
         {/* Пагінація */}
-        <div className="flex justify-center gap-4 mt-8">
-          <button
-            onClick={() => setPage(p => Math.max(1, p - 1))}
-            disabled={page === 1}
-            className="px-4 py-2 bg-blue-600 text-white rounded disabled:bg-gray-600"
-          >
-            Попередня
-          </button>
-          <span className="px-4 py-2 text-white">
-            Сторінка {page} з {totalPages}
-          </span>
-          <button
-            onClick={() => setPage(p => Math.min(totalPages, p + 1))}
-            disabled={page === totalPages}
-            className="px-4 py-2 bg-blue-600 text-white rounded disabled:bg-gray-600"
-          >
-            Наступна
-          </button>
+        <div className="mt-8">
+          <Pagination
+            currentPage={page}
+            totalPages={totalPages}
+            onPageChange={handlePageChange}
+          />
+          
+          {/* Форма для введення номера сторінки */}
+          <form onSubmit={handleInputPageSubmit} className="flex justify-center items-center gap-2 mt-4">
+            <input
+              type="number"
+              min="1"
+              max={totalPages}
+              value={inputPage}
+              onChange={(e) => setInputPage(e.target.value)}
+              placeholder="Page number"
+              className="px-3 py-2 rounded-lg text-sm bg-gray-800 text-white w-32"
+            />
+            <button
+              type="submit"
+              className="px-3 py-2 rounded-lg text-sm font-medium bg-blue-600 text-white hover:bg-blue-700"
+            >
+              Go
+            </button>
+          </form>
         </div>
       </div>
     </div>
