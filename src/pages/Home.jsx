@@ -39,7 +39,7 @@ export default function Home() {
         
         if (!response.results || !Array.isArray(response.results) || response.results.length === 0) {
           if (searchQuery) {
-            throw new Error('Фільми не знайдено');
+            throw new Error('No movies found');
           } else {
             setMovies([]);
             setTotalPages(realTotalPages);
@@ -51,7 +51,7 @@ export default function Home() {
         setTotalPages(realTotalPages);
       } catch (err) {
         setError(err.message);
-        console.error('Помилка при завантаженні фільмів:', err);
+        console.error('Error downloading movies:', err);
       } finally {
         setIsLoading(false);
       }
@@ -160,14 +160,14 @@ export default function Home() {
               max={totalPages}
               value={inputPage}
               onChange={(e) => setInputPage(e.target.value)}
-              placeholder="Номер сторінки"
+              placeholder="Page number"
               className="px-3 py-2 rounded-lg text-sm bg-gray-800 text-white w-32"
             />
             <button
               type="submit"
               className="px-3 py-2 rounded-lg text-sm font-medium bg-blue-600 text-white hover:bg-blue-700"
             >
-              Перейти
+              Go
             </button>
           </form>
         </div>

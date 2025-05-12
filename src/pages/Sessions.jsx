@@ -1,39 +1,19 @@
 import { useEffect, useState } from "react";
 import tmdbApi from "../services/tmdbApi";
 
-const timeSlots = ["09:00", "12:00", "15:00", "18:00", "21:00"];
-const partsOfDay = {
-  morning: ["09:00", "12:00"],
-  afternoon: ["15:00"],
-  evening: ["18:00", "21:00"],
-};
-
-const generateRandomSessions = (movie) => {
-  const today = new Date();
-  const sessions = [];
-
-  for (let i = 0; i < 5; i++) {
-    const date = new Date(today);
-    date.setDate(today.getDate() + i);
-
-    const showtimes = timeSlots
-      .sort(() => 0.5 - Math.random()) // Random order
-      .slice(0, Math.floor(Math.random() * 3) + 2); // 2–4 times
-
-    showtimes.forEach((time) => {
-      sessions.push({
-        movie,
-        date: date.toISOString().split("T")[0],
-        time,
-      });
-    });
-  }
-
-  return sessions;
+const getPartOfDay = (time) => {
+  if (!time) return '';
+  const [h, m] = time.split(":").map(Number);
+  const minutes = h * 60 + m;
+  if (minutes >= 6 * 60 && minutes < 13 * 60) return "morning"; // 06:00-12:59
+  if (minutes >= 13 * 60 && minutes < 18 * 60) return "afternoon"; // 13:00-17:59
+  if (minutes >= 18 * 60 && minutes < 24 * 60) return "evening"; // 18:00-23:59
+  return '';
 };
 
 const Sessions = () => {
   const [sessions, setSessions] = useState([]);
+  const [movies, setMovies] = useState([]);
   const [filteredSessions, setFilteredSessions] = useState([]);
   const [genres, setGenres] = useState([]);
   const [filters, setFilters] = useState({
@@ -43,56 +23,44 @@ const Sessions = () => {
   });
 
   useEffect(() => {
-    const loadSessions = async () => {
-      try {
-        const data = await tmdbApi.getPopularMovies();
-        const movies = data.results;
-
-        const genreList = new Set();
-        const allSessions = [];
-
-        for (const movie of movies) {
-          const details = await tmdbApi.getMovieDetails(movie.id);
-          details.genres?.forEach((g) => genreList.add(g.name));
-          const movieSessions = generateRandomSessions(details);
-          allSessions.push(...movieSessions);
-        }
-
-        setGenres(Array.from(genreList));
-        setSessions(allSessions);
-        setFilteredSessions(allSessions);
-      } catch (error) {
-        console.error("Error loading sessions:", error);
-      }
-    };
-
-    loadSessions();
+    // Завантажити сеанси з localStorage
+    const storedSessions = JSON.parse(localStorage.getItem('sessions')) || [];
+    setSessions(storedSessions);
+    // Завантажити фільми з TMDB
+    tmdbApi.getPopularMovies(1).then(res => {
+      setMovies(res.results || []);
+      // Зібрати всі жанри
+      const genreSet = new Set();
+      (res.results || []).forEach(m => (m.genre_ids || []).forEach(id => genreSet.add(id)));
+      setGenres(Array.from(genreSet));
+    });
   }, []);
 
   useEffect(() => {
-    let result = [...sessions];
+    let result = sessions.map(session => {
+      const movie = movies.find(m => String(m.id) === String(session.movieId));
+      return { ...session, movie };
+    }).filter(s => s.movie);
 
     if (filters.date) {
       result = result.filter((s) => s.date === filters.date);
     }
-
     if (filters.genre) {
-      result = result.filter((s) =>
-        s.movie.genres.some((g) => g.name === filters.genre)
-      );
+      result = result.filter((s) => s.movie.genre_ids && s.movie.genre_ids.includes(Number(filters.genre)));
     }
-
     if (filters.partOfDay) {
-      result = result.filter((s) =>
-        partsOfDay[filters.partOfDay].includes(s.time)
-      );
+      result = result.filter((s) => getPartOfDay(s.time) === filters.partOfDay);
     }
-
     setFilteredSessions(result);
-  }, [filters, sessions]);
+  }, [filters, sessions, movies]);
 
   const handleChange = (e) => {
     setFilters({ ...filters, [e.target.name]: e.target.value });
+  };
+
+  // Для select жанрів — отримати назви жанрів з TMDB (можна покращити, якщо потрібно)
+  const genreNames = {
+    28: 'Action', 12: 'Adventure', 16: 'Animation', 35: 'Comedy', 80: 'Crime', 99: 'Documentary', 18: 'Drama', 10751: 'Family', 14: 'Fantasy', 36: 'History', 27: 'Horror', 10402: 'Music', 9648: 'Mystery', 10749: 'Romance', 878: 'Science Fiction', 10770: 'TV Movie', 53: 'Thriller', 10752: 'War', 37: 'Western'
   };
 
   return (
@@ -118,9 +86,7 @@ const Sessions = () => {
           >
             <option value="">All genres</option>
             {genres.map((g) => (
-              <option key={g} value={g}>
-                {g}
-              </option>
+              <option key={g} value={g}>{genreNames[g] || g}</option>
             ))}
           </select>
 
@@ -153,10 +119,10 @@ const Sessions = () => {
                 <div className="flex-1">
                   <h2 className="text-xl font-bold">{session.movie.title}</h2>
                   <p className="text-gray-300">
-                    {session.movie.genres.map((g) => g.name).join(", ")}
+                    {session.movie.genre_ids.map((id) => genreNames[id]).join(", ")}
                   </p>
                   <p>
-                    📅 {session.date} — 🕒 {session.time}
+                    📅 {session.date} — 🕒 {session.time} — 💸 {session.price} UAH
                   </p>
                 </div>
               </div>
