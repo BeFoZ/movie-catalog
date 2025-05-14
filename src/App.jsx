@@ -32,7 +32,12 @@ function App() {
         { path: 'sessions', element: <Sessions /> },
         // { path: '/search', element: <SearchResults /> },
         { path: 'movie/:id', element: <MovieDetails /> },
-        { path: 'admin', element: <Admin /> },
+        {
+          path: 'admin',
+          element: user?.user_metadata?.is_admin
+              ? <Admin />
+              : <Navigate to='/' replace />,
+        },
         {
           path: 'profile',
           element: user ? <ProfilePage /> : <Navigate to='/login' />
