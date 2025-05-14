@@ -1,12 +1,16 @@
-import { useParams } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { Star } from "lucide-react";
 import Skeleton from "../components/Skeleton";
 import ErrorMessage from "../components/ErrorMessage";
 import tmdbApi from "../services/tmdbApi";
+import { useAuth } from "../AuthContext.jsx";
+import { fetchFavorites, addFavorite, removeFavorite } from "../services/favoritesApi";
 
 const MovieDetails = () => {
   const { id } = useParams();
+  const { user } = useAuth();
+  const navigate = useNavigate();
   const [movie, setMovie] = useState(null);
   const [isFavorite, setIsFavorite] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
@@ -18,7 +22,7 @@ const MovieDetails = () => {
       try {
         setIsLoading(true);
         setError(null);
-        
+
         const movieData = await tmdbApi.getMovieDetails(id);
         if (!movieData) {
           throw new Error('Movie not found');
@@ -46,30 +50,29 @@ const MovieDetails = () => {
 }, [movie]);
 
   useEffect(() => {
-    if (movie) {
-      const favorites = JSON.parse(localStorage.getItem("favorites")) || [];
-      setIsFavorite(favorites.some((f) => f.id === movie.id));
-    }
-  }, [movie]);
+    if (!user || !movie) return;
+    setError(null);
+    fetchFavorites()
+      .then(list => setIsFavorite(list.some(f => f.movie_data.id === movie.id)))
+      .catch(err => setError(err.message));
+  }, [user, movie]);
 
   useEffect(() => {
-    const loadTrailer = async () => {
-      if (movie) {
-        const trailerUrl = await tmdbApi.getMovieTrailer(movie.id);
-        setMovie((prev) => ({ ...prev, trailer: trailerUrl }));
-      }
-    };
-
-    loadTrailer();
+    if (!movie || movie.trailer) return;
+    tmdbApi.getMovieTrailer(movie.id).then((url) => {
+      setMovie((prev) => ({ ...prev, trailer: url }));
+    });
   }, [movie]);
 
-  const toggleFavorite = () => {
-    const favorites = JSON.parse(localStorage.getItem("favorites")) || [];
-    const updated = isFavorite
-      ? favorites.filter((f) => f.id !== movie.id)
-      : [...favorites, movie];
-    localStorage.setItem("favorites", JSON.stringify(updated));
-    setIsFavorite(!isFavorite);
+  const toggleFavorite = async () => {
+    if (!user) return navigate("/login");
+    if (isFavorite) {
+      await removeFavorite(movie.id);
+      setIsFavorite(false);
+    } else {
+      await addFavorite(movie);
+      setIsFavorite(true);
+    }
   };
 
   if (isLoading) {
@@ -97,7 +100,7 @@ const MovieDetails = () => {
   return (
     <div className="min-h-screen bg-[#0f172a] text-white px-6 py-10">
       <div className="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-8">
-        
+
         {/* Poster */}
         <img
           src={`https://image.tmdb.org/t/p/w500${movie.poster_path}`}
@@ -185,5 +188,3 @@ const MovieDetails = () => {
 };
 
 export default MovieDetails;
-
-

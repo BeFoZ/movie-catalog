@@ -1,5 +1,5 @@
 import React from "react";
-import { createBrowserRouter, RouterProvider } from "react-router-dom";
+import { createBrowserRouter, RouterProvider, Navigate } from "react-router-dom";
 
 import Layout from "./components/Layout.jsx";
 import Home from "./pages/Home.jsx";
@@ -9,23 +9,36 @@ import Favorites from "./pages/Favorites.jsx";
 import Sessions from "./pages/Sessions.jsx";
 import Admin from "./pages/Admin.jsx";
 
+import AuthPage from './pages/AuthPage.jsx';
+import ProfilePage from './pages/ProfilePage.jsx';
+import { useAuth } from './AuthContext.jsx';
+
 function App() {
+  const { user, loading } = useAuth();
+  if (loading) return <div>Loading…</div>;
+
   const router = createBrowserRouter([
+
     {
-      path: "/",
+      path: '/login',
+      element: user ? <Navigate to='/' /> : <AuthPage />
+    },
+    {
+      path: '/',
       element: <Layout />,
       children: [
+        { path: '/', element: <Home /> },
+        { path: 'favorites', element: <Favorites /> },
+        { path: 'sessions', element: <Sessions /> },
+        // { path: '/search', element: <SearchResults /> },
+        { path: 'movie/:id', element: <MovieDetails /> },
+        { path: 'admin', element: <Admin /> },
         {
-          path: "/",
-          element: <Home />,
-        },
-        { path: "/favorites", element: <Favorites /> },
-        { path: "/movie/:id", element: <MovieDetails /> },
-       // { path: "/search", element: <SearchResults /> },
-        { path: "/sessions", element: <Sessions /> },
-        { path: "/admin", element: <Admin /> },
-      ],
-    },
+          path: 'profile',
+          element: user ? <ProfilePage /> : <Navigate to='/login' />
+        }
+      ]
+    }
   ]);
 
   return <RouterProvider router={router} />;
