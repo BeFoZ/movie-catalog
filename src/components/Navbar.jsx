@@ -7,7 +7,7 @@ export default function Navbar() {
     const { user } = useAuth();
 
     const linkClasses = ({ isActive }) =>
-        `text-lg font-medium text-white hover:text-blue-400 px-3 py-2 rounded ${
+        `flex items-center text-lg font-medium text-white hover:text-blue-400 px-3 py-2 rounded ${
             isActive ? "bg-gray-700" : ""
         }`;
 
@@ -17,6 +17,7 @@ export default function Navbar() {
                 <Link to="/" className="text-2xl font-bold text-white mr-8">
                     CINEPOST
                 </Link>
+
                 <div className="flex items-center space-x-2">
                     <NavLink to="/" className={linkClasses} end>
                         Home
@@ -31,6 +32,7 @@ export default function Navbar() {
                         Recommendations
                     </NavLink>
                 </div>
+
                 <div className="flex items-center space-x-4 pl-2">
                     <Search />
                     {user ? (
@@ -39,7 +41,7 @@ export default function Navbar() {
                         </NavLink>
                     ) : (
                         <NavLink to="/login" className={linkClasses}>
-                            Sign In
+                            Sign<span className="text-transparent">_</span>In
                         </NavLink>
                     )}
                 </div>
