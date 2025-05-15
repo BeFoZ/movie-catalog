@@ -117,6 +117,18 @@ getMovieCredits: async (movieId) => {
     return null;
   }
 },
+  async getMovieDetailsDirect(movieId) {
+    const url = `${BASE_URL}/movie/${movieId}?api_key=${API_KEY}`;
+    const response = await fetch(url);
+    if (!response.ok) throw new Error("Failed to load movie details");
+    const data = await response.json();
+    if (!data || data.success === false) {
+      throw new Error(data.status_message || "Movie not found");
+    }
+    return data;
+  }
 };
+
+// no proxy call
 
 export default tmdbApi; 
