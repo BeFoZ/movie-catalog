@@ -1,18 +1,22 @@
 import React from "react";
-import { useSearchParams } from "react-router-dom";
+import {useNavigate, useLocation, useSearchParams} from "react-router-dom";
 
 export default function Search() {
-  const [searchParams, setSearchParams] = useSearchParams();
+  const [searchParams] = useSearchParams();
   const query = searchParams.get("search") || "";
+
+  const navigate = useNavigate();
+  const location = useLocation();
 
   const handleSearch = (e) => {
     const value = e.target.value;
+    const params = new URLSearchParams(location.search);
     if (value) {
-      searchParams.set("search", value);
+      params.set("search", value);
     } else {
-      searchParams.delete("search");
+      params.delete("search");
     }
-    setSearchParams(searchParams);
+    navigate(`/?${params.toString()}`, { replace: true });
   };
 
   return (
