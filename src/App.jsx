@@ -12,6 +12,7 @@ import Admin from "./pages/Admin.jsx";
 import AuthPage from './pages/AuthPage.jsx';
 import ProfilePage from './pages/ProfilePage.jsx';
 import { useAuth } from './AuthContext.jsx';
+import RecommendationsPage from "./pages/RecommendationsPage.jsx";
 
 function App() {
   const { user, loading } = useAuth();
@@ -32,6 +33,10 @@ function App() {
         { path: 'sessions', element: <Sessions /> },
         // { path: '/search', element: <SearchResults /> },
         { path: 'movie/:id', element: <MovieDetails /> },
+        {
+          path: "recommendations",
+          element: user ? <RecommendationsPage /> : <Navigate to="/login" />,
+        },
         {
           path: 'admin',
           element: user?.user_metadata?.is_admin
