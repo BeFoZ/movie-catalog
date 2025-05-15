@@ -1,25 +1,54 @@
 import { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { Trash2 } from "lucide-react";
+import { useAuth } from "../AuthContext.jsx";
+import { fetchFavorites, removeFavorite } from "../services/favoritesApi";
+import ErrorMessage from '../components/ErrorMessage';
 
 const Favorites = () => {
   const [favorites, setFavorites] = useState([]);
+  const [error, setError] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const { user } = useAuth();
+  const navigate = useNavigate();
 
   useEffect(() => {
-    const stored = JSON.parse(localStorage.getItem("favorites")) || [];
-    setFavorites(stored);
-  }, []);
+    if (!user) {
+      navigate("/login");
+      return;
+    }
+    setError(null);
+    setLoading(true);
+    fetchFavorites()
+      .then(data => setFavorites(data.map(f => f.movie_data)))
+      .catch((err) => setError(err.message))
+      .finally(() => setLoading(false));
+  }, [user, navigate]);
 
-  const removeFromFavorites = (id) => {
-    const updated = favorites.filter((movie) => movie.id !== id);
-    setFavorites(updated);
-    localStorage.setItem("favorites", JSON.stringify(updated));
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-[#0f172a] text-white px-6 py-10">
+        <div className="max-w-6xl mx-auto">
+          <p>Loading favorites…</p>
+        </div>
+      </div>
+    );
+  }
+
+  const removeFromFavorites = async (id) => {
+    try {
+      await removeFavorite(id);
+      setFavorites(prev => prev.filter(movie => movie.id !== id));
+    } catch (err) {
+      setError(err.message);
+    }
   };
 
   return (
     <div className="min-h-screen bg-[#0f172a] text-white px-6 py-10">
       <div className="max-w-6xl mx-auto">
         <h1 className="text-4xl font-bold mb-6">Favorite movies</h1>
+        {error && <ErrorMessage message={error} />}
 
         {favorites.length === 0 ? (
           <p className="text-gray-400">No saved movies.</p>

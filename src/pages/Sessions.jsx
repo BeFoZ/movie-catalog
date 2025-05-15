@@ -1,13 +1,14 @@
 import { useEffect, useState } from "react";
 import tmdbApi from "../services/tmdbApi";
+import { fetchSessions } from "../services/sessionsApi";
 
 const getPartOfDay = (time) => {
   if (!time) return '';
   const [h, m] = time.split(":").map(Number);
   const minutes = h * 60 + m;
-  if (minutes >= 6 * 60 && minutes < 13 * 60) return "morning"; // 06:00-12:59
-  if (minutes >= 13 * 60 && minutes < 18 * 60) return "afternoon"; // 13:00-17:59
-  if (minutes >= 18 * 60 && minutes < 24 * 60) return "evening"; // 18:00-23:59
+  if (minutes >= 6 * 60 && minutes < 13 * 60) return "morning";
+  if (minutes >= 13 * 60 && minutes < 18 * 60) return "afternoon";
+  if (minutes >= 18 * 60 && minutes < 24 * 60) return "evening";
   return '';
 };
 
@@ -16,40 +17,50 @@ const Sessions = () => {
   const [movies, setMovies] = useState([]);
   const [filteredSessions, setFilteredSessions] = useState([]);
   const [genres, setGenres] = useState([]);
-  const [filters, setFilters] = useState({
-    date: "",
-    genre: "",
-    partOfDay: "",
-  });
+  const [filters, setFilters] = useState({ date: "", genre: "", partOfDay: "" });
 
   useEffect(() => {
-    // Завантажити сеанси з localStorage
-    const storedSessions = JSON.parse(localStorage.getItem('sessions')) || [];
-    setSessions(storedSessions);
-    // Завантажити фільми з TMDB
-    tmdbApi.getPopularMovies(1).then(res => {
+    fetchSessions()
+        .then(data => {
+          console.log("Fetched sessions:", data);
+          setSessions(data);
+        })
+        .catch((err) => console.error("Failed to load sessions:", err));
+
+    tmdbApi.getPopularMovies(1).then((res) => {
       setMovies(res.results || []);
-      // Зібрати всі жанри
       const genreSet = new Set();
-      (res.results || []).forEach(m => (m.genre_ids || []).forEach(id => genreSet.add(id)));
+      (res.results || []).forEach((m) =>
+          (m.genre_ids || []).forEach((id) => genreSet.add(id))
+      );
       setGenres(Array.from(genreSet));
     });
   }, []);
 
   useEffect(() => {
-    let result = sessions.map(session => {
-      const movie = movies.find(m => String(m.id) === String(session.movieId));
-      return { ...session, movie };
-    }).filter(s => s.movie);
+    let result = sessions
+        .map((session) => {
+          const movie = movies.find(
+              (m) => String(m.id) === String(session.movie_id)
+          );
+          return { ...session, movie };
+        })
+        .filter((s) => s.movie);
 
     if (filters.date) {
       result = result.filter((s) => s.date === filters.date);
     }
     if (filters.genre) {
-      result = result.filter((s) => s.movie.genre_ids && s.movie.genre_ids.includes(Number(filters.genre)));
+      result = result.filter(
+          (s) =>
+              s.movie.genre_ids &&
+              s.movie.genre_ids.includes(Number(filters.genre))
+      );
     }
     if (filters.partOfDay) {
-      result = result.filter((s) => getPartOfDay(s.time) === filters.partOfDay);
+      result = result.filter(
+          (s) => getPartOfDay(s.time) === filters.partOfDay
+      );
     }
     setFilteredSessions(result);
   }, [filters, sessions, movies]);
