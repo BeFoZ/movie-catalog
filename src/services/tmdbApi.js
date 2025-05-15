@@ -1,6 +1,9 @@
 const API_KEY = import.meta.env.VITE_TMDB_API_KEY;
 const BASE_URL = import.meta.env.VITE_TMDB_BASE_URL;
 
+const PROXY_BASE = import.meta.env.VITE_SUPABASE_PROXY_URL;
+import { supabase } from '../supabaseClient';
+
 const tmdbApi = {
   // Get popular movies
   getPopularMovies: async (page = 1) => {
@@ -17,26 +20,33 @@ const tmdbApi = {
 
   // Get movie details
   getMovieDetails: async (movieId) => {
-      try {
-    const response = await fetch(
-      `${BASE_URL}/movie/${movieId}?api_key=${API_KEY}`
-    );
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      const token = session?.access_token;
+      const response = await fetch(
+        `${PROXY_BASE}/tmdbProxy/movie/${movieId}`,
+        {
+          headers: {
+            Authorization: token ? `Bearer ${token}` : ''
+          }
+        }
+      );
 
-    if (!response.ok) {
-      throw new Error('Failed to load the movie.');
+      if (!response.ok) {
+        throw new Error('Failed to load the movie.');
+      }
+
+      const data = await response.json();
+
+      if (!data || data.success === false) {
+        throw new Error(data.status_message || 'Movie not found.');
+      }
+
+      return data;
+    } catch (error) {
+      console.error('Error fetching movie details:', error);
+      throw error;
     }
-
-    const data = await response.json();
-
-    if (!data || data.success === false) {
-      throw new Error(data.status_message || 'Movie not found.');
-    }
-
-    return data;
-  } catch (error) {
-    console.error('Error fetching movie details:', error);
-    throw error;
-  }
   },
 
   // Search movies
