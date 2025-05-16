@@ -33,7 +33,12 @@ const MovieDetails = () => {
             throw new Error('Movie not found');
           }
         } else {
-          movieData = await tmdbApi.getMovieDetails(movieId);
+          // Use direct API call for non-authenticated users
+          if (!user) {
+            movieData = await tmdbApi.getMovieDetailsDirect(movieId);
+          } else {
+            movieData = await tmdbApi.getMovieDetails(movieId);
+          }
           if (!movieData) {
             throw new Error('Movie not found');
           }
@@ -47,7 +52,7 @@ const MovieDetails = () => {
     };
 
     loadMovie();
-  }, [id, movieId, isLocalMovie]);
+  }, [id, movieId, isLocalMovie, user]);
 
   useEffect(() => {
     const loadCredits = async () => {
