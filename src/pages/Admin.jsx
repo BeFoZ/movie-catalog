@@ -8,6 +8,12 @@ import {
   updateSession,
   deleteSession,
 } from '../services/sessionsApi';
+import {
+  getAllMovies,
+  addMovie,
+  updateMovie,
+  deleteMovie,
+} from '../services/moviesApi';
 
 export default function Admin() {
   const { user, loading } = useAuth();
@@ -24,16 +30,36 @@ export default function Admin() {
   const [activeTab, setActiveTab] = useState('sessions'); // 'sessions' or 'movies'
   const [isAddingMovie, setIsAddingMovie] = useState(false);
   const [editingMovie, setEditingMovie] = useState(null);
-  const [movieForm, setMovieForm] = useState({ title: '', overview: '', poster_path: '', release_date: '' });
+  const [movieForm, setMovieForm] = useState({
+    title: '',
+    overview: '',
+    poster_path: '',
+    release_date: '',
+    rating: '',
+    trailer_url: '',
+    cast: '',
+  });
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState([]);
 
   useEffect(() => {
     fetchSessions().then(setSessions).catch(console.error);
+    loadMovies();
+    // Load TMDB movies
     tmdbApi.getPopularMovies(1)
-        .then(res => setMovies(res.results || []))
-        .catch(() => setMovies([]));
+      .then(res => setMovies(prev => [...prev, ...(res.results || [])]))
+      .catch(error => console.error('Error loading TMDB movies:', error));
   }, []);
+
+  const loadMovies = async () => {
+    try {
+      const localMovies = await getAllMovies();
+      setMovies(localMovies);
+    } catch (error) {
+      console.error('Error loading movies:', error);
+      setMovies([]);
+    }
+  };
 
   const handleSessionFormChange = (e) => {
     setSessionForm({ ...sessionForm, [e.target.name]: e.target.value });
@@ -74,10 +100,10 @@ export default function Admin() {
   };
 
   const filteredMovies = movies.filter((m) =>
-      m.title.toLowerCase().includes(movieSearch.toLowerCase())
+    m.title.toLowerCase().includes(movieSearch.toLowerCase())
   );
 
-  // New movie management functions
+  // Updated movie management functions
   const handleMovieSearch = async (e) => {
     e.preventDefault();
     if (!searchQuery.trim()) return;
@@ -92,7 +118,15 @@ export default function Admin() {
   };
 
   const handleAddMovieClick = () => {
-    setMovieForm({ title: '', overview: '', poster_path: '', release_date: '' });
+    setMovieForm({
+      title: '',
+      overview: '',
+      poster_path: '',
+      release_date: '',
+      rating: '',
+      trailer_url: '',
+      cast: '',
+    });
     setEditingMovie(null);
     setIsAddingMovie(true);
   };
@@ -103,6 +137,9 @@ export default function Admin() {
       overview: movie.overview,
       poster_path: movie.poster_path,
       release_date: movie.release_date,
+      rating: movie.rating || '',
+      trailer_url: movie.trailer_url || '',
+      cast: movie.cast || '',
     });
     setEditingMovie(movie.id);
     setIsAddingMovie(true);
@@ -114,26 +151,27 @@ export default function Admin() {
 
   const handleMovieFormSubmit = async (e) => {
     e.preventDefault();
-    // Here you would typically save the movie to your database
-    // For now, we'll just update the local state
-    if (editingMovie) {
-      const updatedMovies = movies.map(m => 
-        m.id === editingMovie ? { ...m, ...movieForm } : m
-      );
-      setMovies(updatedMovies);
-    } else {
-      const newMovie = {
-        id: Date.now(), // Temporary ID
-        ...movieForm,
-      };
-      setMovies([...movies, newMovie]);
+    try {
+      if (editingMovie) {
+        await updateMovie(editingMovie, movieForm);
+      } else {
+        await addMovie(movieForm);
+      }
+      await loadMovies();
+      setIsAddingMovie(false);
+      setEditingMovie(null);
+    } catch (error) {
+      console.error('Error saving movie:', error);
     }
-    setIsAddingMovie(false);
-    setEditingMovie(null);
   };
 
-  const handleDeleteMovie = (movieId) => {
-    setMovies(movies.filter(m => m.id !== movieId));
+  const handleDeleteMovie = async (movieId) => {
+    try {
+      await deleteMovie(movieId);
+      await loadMovies();
+    } catch (error) {
+      console.error('Error deleting movie:', error);
+    }
   };
 
   if (loading) return <div>Loading…</div>;
@@ -212,7 +250,9 @@ export default function Admin() {
                     >
                       <option value="">Select movie</option>
                       {filteredMovies.map((m) => (
-                          <option key={m.id} value={m.id}>{m.title}</option>
+                        <option key={m.id} value={m.id}>
+                          {m.title}
+                        </option>
                       ))}
                     </select>
                   </div>
@@ -390,6 +430,41 @@ export default function Admin() {
                     className="w-full px-3 py-2 rounded-lg border focus:ring-2 focus:ring-blue-500"
                   />
                 </div>
+                <div>
+                  <label className="block text-sm font-semibold mb-1">Rating (0-10)</label>
+                  <input
+                    type="number"
+                    name="rating"
+                    value={movieForm.rating}
+                    onChange={handleMovieFormChange}
+                    min="0"
+                    max="10"
+                    step="0.1"
+                    className="w-full px-3 py-2 rounded-lg border focus:ring-2 focus:ring-blue-500"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-semibold mb-1">Trailer URL (YouTube)</label>
+                  <input
+                    type="url"
+                    name="trailer_url"
+                    value={movieForm.trailer_url}
+                    onChange={handleMovieFormChange}
+                    placeholder="https://www.youtube.com/watch?v=..."
+                    className="w-full px-3 py-2 rounded-lg border focus:ring-2 focus:ring-blue-500"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-semibold mb-1">Cast (comma-separated)</label>
+                  <textarea
+                    name="cast"
+                    value={movieForm.cast}
+                    onChange={handleMovieFormChange}
+                    placeholder="Actor 1, Actor 2, Actor 3..."
+                    rows="2"
+                    className="w-full px-3 py-2 rounded-lg border focus:ring-2 focus:ring-blue-500"
+                  />
+                </div>
                 <div className="flex justify-end gap-2">
                   <button
                     type="button"
@@ -421,9 +496,27 @@ export default function Admin() {
                       />
                     )}
                     <div>
-                      <div className="font-bold text-lg text-gray-900">{movie.title}</div>
+                      <div className="font-bold text-lg text-gray-900">
+                        {movie.title} 
+                        <span className="ml-2 text-sm font-normal px-2 py-1 rounded-full bg-gray-100">
+                          {movie.vote_average !== undefined ? 'TMDB' : 'Local'}
+                        </span>
+                      </div>
                       <div className="text-gray-500 text-sm line-clamp-2">{movie.overview}</div>
-                      <div className="text-blue-600 font-semibold mt-1">{movie.release_date}</div>
+                      <div className="flex items-center gap-2 mt-1">
+                        <div className="text-blue-600 font-semibold">{movie.release_date}</div>
+                        {movie.rating && (
+                          <div className="text-yellow-500 font-semibold">★ {movie.rating}</div>
+                        )}
+                        {movie.vote_average && (
+                          <div className="text-yellow-500 font-semibold">★ {movie.vote_average.toFixed(1)}</div>
+                        )}
+                      </div>
+                      {movie.cast && (
+                        <div className="text-gray-500 text-sm mt-1">
+                          Cast: {movie.cast}
+                        </div>
+                      )}
                     </div>
                   </div>
                   <div className="flex gap-2">
