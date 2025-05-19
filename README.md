@@ -1,41 +1,108 @@
-# SoftServe Practice: WebUI/React - Кіноафіша
+# Movie Catalog
 
-## Команда розробки (Team 8)
-**Склад команди:**
-- **Юрій Іванків** - Team Lead
-- Денис Дмитрук - Developer
-- Кирило Квас - Developer
-- Кирило Колесніченко - Developer
-- Георгій Бриж - Developer
-- Денис Іващенко - Developer
+A modern web application for browsing and managing your movie collection. Built with React and Supabase, this application provides a seamless experience for movie enthusiasts to discover, track, and organize their favorite films.
 
-## Основні функціональні сторінки
+## 👥 Development Team (Team 8)
 
-### 1. Головна сторінка
-- Відображення списку актуальних фільмів та новинок
-- Кнопка "Детальніше" для переходу на сторінку фільму
+- Yurii Ivankiv - Team Lead
+- Georgii Bryzh - Developer
+- Kyrylo Kolesnichenko - Developer
+- Kyrylo Kvas - Developer
+- Denis Ivashchenko - Developer
 
-### 2. Сторінка фільму
-- Можливість додати у «Обране».
-- Детальна інформація: постер, опис, жанр, рейтинг, рік випуску, трейлер,
-акторський склад.
+## 🎬 Features
 
-### 3. Система пошуку
-- Пошук за назвою та іншими критеріями (жанр, рік, рейтинг тощо)
+### Core Features
+- User authentication and authorization
+- Browse and search movies
+- Create and manage personal movie collections
+- Responsive design for all devices
+- Modern and intuitive user interface
+- Real-time updates with Supabase
 
-### 4. Розклад сеансів
-- Перегляд розкладу сеансів з можливістю фільтрації за часом, датою,
-жанром.
+### Main Pages
 
-### 5. Сторінка "Обрані"
-- Відображення збережених фільмів 
+1. **Home Page**
+   - Display of current movies and new releases
+   - "More Details" button for movie page navigation
 
-### 6. Панель адміністратора:
-- Додавання, редагування та видалення фільмів і сеансів..
-- Можливість змінювати ціни на квитки.
-- Можливість перегляду статистики продажів та інших ключових метрик. **(optional)**
+2. **Movie Page**
+   - Add to favorites functionality
+   - Detailed information including:
+     - Movie poster
+     - Description
+     - Genre
+     - Rating
+     - Release year
+     - Trailer
+     - Cast information
 
-### 7. Персоналізація (optional)
-- Можливість реєстрації та входу користувачів для бронювання квитків.
-- Генерація персоналізованих пропозицій для користувача на основі його
-бронювань.
+3. **Search System**
+   - Search by title
+
+4. **Schedule Page**
+   - View movie schedules
+   - Filter by:
+     - Time
+     - Date
+     - Genre
+
+5. **Favorites Page**
+   - Display saved movies
+   - Quick access to favorite content
+
+6. **Admin Panel**
+   - Add, edit, and delete movies and sessions
+   - Manage ticket prices
+
+7. **Personalization (Optional)**
+   - User registration and login for ticket booking
+   - Personalized recommendations based on user preferences
+
+## 🚀 Technologies
+
+- **Frontend:**
+  - React 19
+  - Redux Toolkit for state management
+  - React Router for navigation
+  - Tailwind CSS for styling
+  - React Hook Form for form handling
+
+- **Backend:**
+  - Supabase for backend services
+  - Supabase Auth for authentication
+  - Supabase Database for data storage
+
+- **Development Tools:**
+  - Vite for fast development and building
+  - ESLint for code linting
+  - TypeScript for type safety
+
+## 📦 Installation
+
+1. Clone the repository:
+   ```bash
+   git clone https://github.com/yourusername/movie-catalog.git
+   cd movie-catalog
+   ```
+
+2. Install dependencies:
+   ```bash
+   npm install
+   ```
+
+3. Create a `.env` file in the root directory and add your Supabase credentials:
+   ```
+    VITE_TMDB_API_KEY=write-your-tmdb-api-key
+    VITE_TMDB_BASE_URL=https://api.themoviedb.org/3
+    VITE_SUPABASE_URL=https://write-your-supabase-project-url.supabase.co
+    VITE_SUPABASE_ANON_KEY=write-your-supabase-anon-key
+    VITE_FAVORITES_FUNCTION_URL=https://write-your-supabase-project-url.supabase.co/functions/v1/favorites
+    VITE_SUPABASE_PROXY_URL=https://write-your-supabase-project-url.supabase.co/functions/v1/
+
+   ```
+
+4. Start the development server:
+   ```bash
+   npm run dev
+   ```
