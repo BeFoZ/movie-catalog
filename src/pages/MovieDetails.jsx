@@ -4,6 +4,7 @@ import { Star } from "lucide-react";
 import Skeleton from "../components/Skeleton";
 import ErrorMessage from "../components/ErrorMessage";
 import tmdbApi from "../services/tmdbApi";
+import { getMovieById } from "../services/moviesApi";
 import { useAuth } from "../AuthContext.jsx";
 import { fetchFavorites, addFavorite, removeFavorite } from "../services/favoritesApi";
 
@@ -16,6 +17,8 @@ const MovieDetails = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
   const [cast, setCast] = useState([]);
+  const isLocalMovie = id.startsWith('local-');
+  const movieId = isLocalMovie ? parseInt(id.replace('local-', '')) : id;
 
   useEffect(() => {
     const loadMovie = async () => {
@@ -23,9 +26,22 @@ const MovieDetails = () => {
         setIsLoading(true);
         setError(null);
 
-        const movieData = await tmdbApi.getMovieDetails(id);
-        if (!movieData) {
-          throw new Error('Movie not found');
+        let movieData;
+        if (isLocalMovie) {
+          movieData = await getMovieById(movieId);
+          if (!movieData) {
+            throw new Error('Movie not found');
+          }
+        } else {
+          // Use direct API call for non-authenticated users
+          if (!user) {
+            movieData = await tmdbApi.getMovieDetailsDirect(movieId);
+          } else {
+            movieData = await tmdbApi.getMovieDetails(movieId);
+          }
+          if (!movieData) {
+            throw new Error('Movie not found');
+          }
         }
         setMovie(movieData);
       } catch (err) {
@@ -36,18 +52,24 @@ const MovieDetails = () => {
     };
 
     loadMovie();
-  }, [id]);
+  }, [id, movieId, isLocalMovie, user]);
 
   useEffect(() => {
-  const loadCredits = async () => {
-    if (movie) {
-      const credits = await tmdbApi.getMovieCredits(movie.id);
-      setCast(credits.cast?.slice(0, 8) || []); // 8 actors
-    }
-  };
+    const loadCredits = async () => {
+      if (movie && !isLocalMovie) {
+        const credits = await tmdbApi.getMovieCredits(movie.id);
+        setCast(credits.cast?.slice(0, 8) || []); // 8 actors
+      } else if (movie && isLocalMovie && movie.cast) {
+        // For local movies, create a simple cast array from the comma-separated string
+        setCast(movie.cast.split(',').map(name => ({
+          name: name.trim(),
+          character: 'Actor'
+        })));
+      }
+    };
 
-  loadCredits();
-}, [movie]);
+    loadCredits();
+  }, [movie, isLocalMovie]);
 
   useEffect(() => {
     if (!user || !movie) return;
@@ -59,10 +81,16 @@ const MovieDetails = () => {
 
   useEffect(() => {
     if (!movie || movie.trailer) return;
-    tmdbApi.getMovieTrailer(movie.id).then((url) => {
-      setMovie((prev) => ({ ...prev, trailer: url }));
-    });
-  }, [movie]);
+    if (isLocalMovie) {
+      if (movie.trailer_url) {
+        setMovie(prev => ({ ...prev, trailer: movie.trailer_url }));
+      }
+    } else {
+      tmdbApi.getMovieTrailer(movie.id).then((url) => {
+        setMovie((prev) => ({ ...prev, trailer: url }));
+      });
+    }
+  }, [movie, isLocalMovie]);
 
   const toggleFavorite = async () => {
     if (!user) return navigate("/login");
@@ -115,21 +143,27 @@ const MovieDetails = () => {
           {/* Rating + Year */}
           <div className="flex items-center space-x-4 text-sm text-gray-300">
             <span className="bg-blue-600 text-white px-2 py-1 rounded-full flex items-center">
-              <Star className="h-4 w-4 mr-1" /> {movie.vote_average.toFixed(1)}
+              <Star className="h-4 w-4 mr-1" /> {isLocalMovie ? movie.rating : movie.vote_average.toFixed(1)}
             </span>
             <span>{new Date(movie.release_date).getFullYear()}</span>
-            <span>•</span>
-            <span>{movie.genres?.map(genre => genre.name).join(", ")}</span>
+            {!isLocalMovie && (
+              <>
+                <span>•</span>
+                <span>{movie.genres?.map(genre => genre.name).join(", ")}</span>
+              </>
+            )}
           </div>
 
           {/* Description */}
           <p className="text-gray-300">{movie.overview}</p>
 
-          {/* Runtime */}
-          <p>
-            <span className="text-white font-semibold">Duration:</span>{" "}
-            {movie.runtime} minutes
-          </p>
+          {/* Runtime - only for TMDB movies */}
+          {!isLocalMovie && movie.runtime && (
+            <p>
+              <span className="text-white font-semibold">Duration:</span>{" "}
+              {movie.runtime} minutes
+            </p>
+          )}
 
           {/* Favorite Button */}
           <button
@@ -146,43 +180,46 @@ const MovieDetails = () => {
       </div>
 
       {/* Trailer */}
-{movie.trailer && (
-  <div className="max-w-6xl mx-auto mt-12">
-    <h2 className="text-2xl font-semibold mb-2">Trailer</h2>
-    <div className="relative pb-[56.25%] h-0 overflow-hidden rounded-lg shadow">
-      <iframe
-        className="absolute top-0 left-0 w-full h-full"
-        src={movie.trailer}
-        title="Trailer"
-        frameBorder="0"
-        allowFullScreen
-      />
-    </div>
-  </div>
-)}
-       {/* Cast */}
-{cast.length > 0 && (
-  <div className="max-w-6xl mx-auto mt-12">
-    <h2 className="text-2xl font-semibold mb-4">Actors</h2>
-    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-      {cast.map((actor) => (
-        <div key={actor.id} className="flex flex-col items-center text-center">
-          <img
-            src={
-              actor.profile_path
-                ? `https://image.tmdb.org/t/p/w185${actor.profile_path}`
-                : "https://via.placeholder.com/185x278?text=No+Image"
-            }
-            alt={actor.name}
-            className="w-[120px] h-[180px] object-cover rounded-lg shadow mb-2"
-          />
-          <p className="text-white font-medium">{actor.name}</p>
-          <p className="text-sm text-gray-400">{actor.character}</p>
+      {movie.trailer && (
+        <div className="max-w-6xl mx-auto mt-12">
+          <h2 className="text-2xl font-semibold mb-2">Trailer</h2>
+          <div className="relative pb-[56.25%] h-0 overflow-hidden rounded-lg shadow">
+            <iframe
+              className="absolute top-0 left-0 w-full h-full"
+              src={movie.trailer}
+              title="Trailer"
+              frameBorder="0"
+              allowFullScreen
+            />
+          </div>
         </div>
-      ))}
-    </div>
-  </div>
-)}
+      )}
+
+      {/* Cast */}
+      {cast.length > 0 && (
+        <div className="max-w-6xl mx-auto mt-12">
+          <h2 className="text-2xl font-semibold mb-4">Actors</h2>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            {cast.map((actor, index) => (
+              <div key={isLocalMovie ? index : actor.id} className="flex flex-col items-center text-center">
+                {!isLocalMovie && actor.profile_path ? (
+                  <img
+                    src={`https://image.tmdb.org/t/p/w185${actor.profile_path}`}
+                    alt={actor.name}
+                    className="w-[120px] h-[180px] object-cover rounded-lg shadow mb-2"
+                  />
+                ) : (
+                  <div className="w-[120px] h-[180px] bg-gray-700 rounded-lg shadow mb-2 flex items-center justify-center">
+                    <span className="text-4xl">🎭</span>
+                  </div>
+                )}
+                <p className="text-white font-medium">{actor.name}</p>
+                {!isLocalMovie && <p className="text-sm text-gray-400">{actor.character}</p>}
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
     </div>
   );
 };
