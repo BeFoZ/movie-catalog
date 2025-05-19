@@ -4,6 +4,7 @@ import { Star } from "lucide-react";
 import Skeleton from "../components/Skeleton";
 import ErrorMessage from "../components/ErrorMessage";
 import tmdbApi from "../services/tmdbApi";
+import CommentSection from "../components/CommentSection";
 import { getMovieById } from "../services/moviesApi";
 import { useAuth } from "../AuthContext.jsx";
 import { fetchFavorites, addFavorite, removeFavorite } from "../services/favoritesApi";
@@ -219,7 +220,10 @@ const MovieDetails = () => {
             ))}
           </div>
         </div>
+        
       )}
+      {/* Comments */}
+{movie?.id && <CommentSection movieId={movie.id} />}
     </div>
   );
 };
