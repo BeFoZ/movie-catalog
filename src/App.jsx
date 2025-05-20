@@ -1,35 +1,57 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
-import './App.css'
+import React from "react";
+import { createBrowserRouter, RouterProvider, Navigate } from "react-router-dom";
+
+import Layout from "./components/Layout.jsx";
+import Home from "./pages/Home.jsx";
+import MovieDetails from "./pages/MovieDetails.jsx";
+import Favorites from "./pages/Favorites.jsx";
+//import SearchResults from "./pages/SearchResults.jsx";
+import Sessions from "./pages/Sessions.jsx";
+import Admin from "./pages/Admin.jsx";
+
+import AuthPage from './pages/AuthPage.jsx';
+import ProfilePage from './pages/ProfilePage.jsx';
+import { useAuth } from './AuthContext.jsx';
+import RecommendationsPage from "./pages/RecommendationsPage.jsx";
 
 function App() {
-  const [count, setCount] = useState(0)
+  const { user, loading } = useAuth();
+  if (loading) return <div>Loading…</div>;
 
-  return (
-    <>
-      <div>
-        <a href="https://vite.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
-      </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.jsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
-    </>
-  )
+  const router = createBrowserRouter([
+
+    {
+      path: '/login',
+      element: user ? <Navigate to='/' /> : <AuthPage />
+    },
+    {
+      path: '/',
+      element: <Layout />,
+      children: [
+        { path: '/', element: <Home /> },
+        { path: 'favorites', element: <Favorites /> },
+        { path: 'sessions', element: <Sessions /> },
+        // { path: '/search', element: <SearchResults /> },
+        { path: 'movie/:id', element: <MovieDetails /> },
+        {
+          path: "recommendations",
+          element: user ? <RecommendationsPage /> : <Navigate to="/login" />,
+        },
+        {
+          path: 'admin',
+          element: user?.user_metadata?.is_admin
+              ? <Admin />
+              : <Navigate to='/' replace />,
+        },
+        {
+          path: 'profile',
+          element: user ? <ProfilePage /> : <Navigate to='/login' />
+        }
+      ]
+    }
+  ]);
+
+  return <RouterProvider router={router} />;
 }
 
-export default App
+export default App;
