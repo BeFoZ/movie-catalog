@@ -67,6 +67,7 @@ A modern web application for browsing and managing your movie collection. Built 
   - React Router for navigation
   - Tailwind CSS for styling
   - React Hook Form for form handling
+  - TMDB API
 
 - **Backend:**
   - Supabase for backend services
